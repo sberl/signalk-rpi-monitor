@@ -81,39 +81,39 @@ module.exports = function (app) {
 
     // notify server, once, of units metadata
     app.handleMessage(plugin.id, {
-        updates: [{
-            meta: [{
-                    path: options.path_cpu_temp,
-                    value: {
-                        units: 'K'
-                    }
-                },
-                {
-                    path: options.path_gpu_temp,
-                    value: {
-                        units: 'K'
-                    }
-                },
-                {
-                    path: options.path_cpu_util,
-                    value: {
-                        units: 'ratio'
-                    }
-                },
-                {
-                    path: options.path_mem_util,
-                    value: {
-                        units: 'ratio'
-                    }
-                },
-                {
-                    path: options.path_sd_util,
-                    value: {
-                        units: 'ratio'
-                    }
-                }
-            ]
-        }]
+      updates: [{
+        meta: [{
+          path: options.path_cpu_temp,
+          value: {
+            units: 'K'
+          }
+        },
+        {
+          path: options.path_gpu_temp,
+          value: {
+            units: 'K'
+          }
+        },
+        {
+          path: options.path_cpu_util,
+          value: {
+            units: 'ratio'
+          }
+        },
+        {
+          path: options.path_mem_util,
+          value: {
+            units: 'ratio'
+          }
+        },
+        {
+          path: options.path_sd_util,
+          value: {
+            units: 'ratio'
+          }
+        }
+        ]
+      }]
     })
 
     function updateEnv () {
@@ -191,12 +191,12 @@ module.exports = function (app) {
         if (data.toString().match(re)) {
           const cpu_util = data.toString().replace(/(\n|\r)+$/, '').split('\n')
           cpu_util.forEach(function (cpu_util_line) {
-            var spl_line = cpu_util_line.replace(/ +/g, ' ').split(' ')
+            const spl_line = cpu_util_line.replace(/ +/g, ' ').split(' ')
             const re2 = /^[0-9]?$/
             if (spl_line[1].match(re2)) {
               debug(`cpu utilisation core ${spl_line[1]} is ${spl_line[11]}`)
-              var pathArray = options.path_cpu_util.toString().split('.')
-              var newPath = pathArray[0] + '.'
+              const pathArray = options.path_cpu_util.toString().split('.')
+              let newPath = pathArray[0] + '.'
               for (let i = 1; i < (pathArray.length - 1); i++) {
                 newPath = newPath + pathArray[i].toString() + '.'
               }
