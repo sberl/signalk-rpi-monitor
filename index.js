@@ -6,7 +6,7 @@
  *  which is a modified version of
  * https://github.com/sbender9/signalk-raspberry-pi-temperature
  *
- * So a big thank you to those who built the foundation on which I am 
+ * So a big thank you to those who built the foundation on which I am
  * adding to.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,63 +23,61 @@
  */
 
 const debug = require('debug')('signalk-rpi-monitor')
-const _ = require('lodash')
 const spawn = require('child_process').spawn
 
-const gpu_temp_command = 'vcgencmd measure_temp'
-const cpu_temp_command = 'cat /sys/class/thermal/thermal_zone0/temp'
-const cpu_util_mpstat_command = 'S_TIME_FORMAT=\'ISO\' mpstat -P ALL 5 1 | sed -n 4,8p'
-const mem_util_command = 'free'
-const sd_util_command = 'df --output=pcent \/\| tail -1 \| awk \'gsub\(\"\%\",\"\"\)\''
+const gpuTempCommand = 'vcgencmd measure_temp'
+const cpuTempCommand = 'cat /sys/class/thermal/thermal_zone0/temp'
+const cpuUtilMpstatCommand = 'S_TIME_FORMAT=\'ISO\' mpstat -P ALL 5 1 | sed -n 4,8p'
+const memUtilCommand = 'free'
+const sdUtilCommand = 'df --output=pcent / | tail -1 | awk \'gsub("%","")\''
 
-module.exports = function(app) {
-  var plugin = {};
-  var timer
+module.exports = function (app) {
+  const plugin = {}
+  let timer
 
-  plugin.id = "signalk-rpi-monitor"
-  plugin.name = "RPI Monitor"
-  plugin.description = "Signal K Node Server Plugin for Raspberry PI monitoring"
+  plugin.id = 'signalk-rpi-monitor'
+  plugin.name = 'RPI Monitor'
+  plugin.description = 'Signal K Node Server Plugin for Raspberry PI monitoring'
 
   plugin.schema = {
-    type: "object",
-    description: "The user running node server must be in the video group to get GPU temperature",
+    type: 'object',
+    description: 'The user running node server must be in the video group to get GPU temperature',
     properties: {
       path_cpu_temp: {
-        title: "SignalK Path for CPU temperature (K)",
-        type: "string",
-        default: "environment.rpi.cpu.temperature",
+        title: 'SignalK Path for CPU temperature (K)',
+        type: 'string',
+        default: 'environment.rpi.cpu.temperature'
       },
       path_gpu_temp: {
-        title: "SignalK Path for GPU temperature (K)",
-        type: "string",
-        default: "environment.rpi.gpu.temperature",
+        title: 'SignalK Path for GPU temperature (K)',
+        type: 'string',
+        default: 'environment.rpi.gpu.temperature'
       },
       path_cpu_util: {
-        title: "SignalK Path for CPU utilisation (Please install sysstat for per core monitoring)",
-        type: "string",
-        default: "environment.rpi.cpu.utilisation",
+        title: 'SignalK Path for CPU utilisation (Please install sysstat for per core monitoring)',
+        type: 'string',
+        default: 'environment.rpi.cpu.utilisation'
       },
       path_mem_util: {
-        title: "SignalK Path for memory utilisation",
-        type: "string",
-        default: "environment.rpi.memory.utilisation",
+        title: 'SignalK Path for memory utilisation',
+        type: 'string',
+        default: 'environment.rpi.memory.utilisation'
       },
       path_sd_util: {
-        title: "SignalK Path for SD card utilisation",
-        type: "string",
-        default: "environment.rpi.sd.utilisation",
+        title: 'SignalK Path for SD card utilisation',
+        type: 'string',
+        default: 'environment.rpi.sd.utilisation'
       },
       rate: {
-        title: "Sample Rate (in seconds)",
+        title: 'Sample Rate (in seconds)',
         type: 'number',
         default: 30
       }
     }
   }
 
-
-  plugin.start = function(options) {
-    debug("start")
+  plugin.start = function (options) {
+    debug('start')
 
     // notify server, once, of units metadata
     app.handleMessage(plugin.id, {
@@ -87,38 +85,38 @@ module.exports = function(app) {
             meta: [{
                     path: options.path_cpu_temp,
                     value: {
-                        units: "K"
+                        units: 'K'
                     }
                 },
                 {
                     path: options.path_gpu_temp,
                     value: {
-                        units: "K"
+                        units: 'K'
                     }
                 },
                 {
                     path: options.path_cpu_util,
                     value: {
-                        units: "ratio"
+                        units: 'ratio'
                     }
                 },
                 {
                     path: options.path_mem_util,
                     value: {
-                        units: "ratio"
+                        units: 'ratio'
                     }
                 },
                 {
                     path: options.path_sd_util,
                     value: {
-                        units: "ratio"
+                        units: 'ratio'
                     }
-                },
+                }
             ]
         }]
-    });
+    })
 
-    function updateEnv() {
+    function updateEnv () {
       getGpuTemperature()
       getCpuTemperature()
       getCpuUtil()
@@ -126,20 +124,20 @@ module.exports = function(app) {
       getSdUtil()
     }
 
-    function getGpuTemperature() {
-      var gputemp = spawn('sh', ['-c', gpu_temp_command ])
+    function getGpuTemperature () {
+      const gputemp = spawn('sh', ['-c', gpuTempCommand])
 
       gputemp.stdout.on('data', (data) => {
         debug(`got gpu  ${data}`)
-        var gpu_temp = (Number(data.toString().split('=')[1].split('\'')[0]) + 273.15).toFixed(2)
-        debug(`gpu temp is ${gpu_temp}`)
+        const gpuTemp = (Number(data.toString().split('=')[1].split('\'')[0]) + 273.15).toFixed(2)
+        debug(`gpu temp is ${gpuTemp}`)
 
         app.handleMessage(plugin.id, {
           updates: [
             {
-              values: [ {
+              values: [{
                 path: options.path_gpu_temp,
-                value: Number(gpu_temp)
+                value: Number(gpuTemp)
               }]
             }
           ]
@@ -155,20 +153,20 @@ module.exports = function(app) {
       })
     }
 
-    function getCpuTemperature() {
-      var cputemp = spawn('sh', ['-c', cpu_temp_command ])
+    function getCpuTemperature () {
+      const cputemp = spawn('sh', ['-c', cpuTempCommand])
 
       cputemp.stdout.on('data', (data) => {
-        debug(`got cpu  ${data}`)
-        var cpu_temp = (Number(data)/1000 + 273.15).toFixed(2)
-        debug(`cpu temp is ${cpu_temp}`)
+        debug(`got cpu_local  ${data}`)
+        const cpuTemp = (Number(data) / 1000 + 273.15).toFixed(2)
+        debug(`cpu temp is ${cpuTemp}`)
 
         app.handleMessage(plugin.id, {
           updates: [
             {
-              values: [ {
+              values: [{
                 path: options.path_cpu_temp,
-                value: Number(cpu_temp)
+                value: Number(cpuTemp)
               }]
             }
           ]
@@ -184,45 +182,44 @@ module.exports = function(app) {
       })
     }
 
-    function getCpuUtil() {
-      var cpuutilfull = spawn('sh', ['-c', cpu_util_mpstat_command ])
+    function getCpuUtil () {
+      const cpuutilfull = spawn('sh', ['-c', cpuUtilMpstatCommand])
 
       cpuutilfull.stdout.on('data', (data) => {
         debug(`got cpu utilisation  ${data}`)
-        var re = /all/im
+        const re = /all/im
         if (data.toString().match(re)) {
-          var cpu_util = data.toString().replace(/(\n|\r)+$/, '').split('\n')
-          cpu_util.forEach(function(cpu_util_line){
+          const cpu_util = data.toString().replace(/(\n|\r)+$/, '').split('\n')
+          cpu_util.forEach(function (cpu_util_line) {
             var spl_line = cpu_util_line.replace(/ +/g, ' ').split(' ')
-            var re2 = /^[0-9]?$/
-            if (spl_line[1].match(re2)){
+            const re2 = /^[0-9]?$/
+            if (spl_line[1].match(re2)) {
               debug(`cpu utilisation core ${spl_line[1]} is ${spl_line[11]}`)
-              var pathArray = options.path_cpu_util.toString().split('\.')
-              var newPath = pathArray[0] + "."
-              for (i=1; i < (pathArray.length - 1); i++) {
-                newPath = newPath + pathArray[i].toString() +"."
+              var pathArray = options.path_cpu_util.toString().split('.')
+              var newPath = pathArray[0] + '.'
+              for (let i = 1; i < (pathArray.length - 1); i++) {
+                newPath = newPath + pathArray[i].toString() + '.'
               }
-              newPath = newPath + "core." + (Number(spl_line[1])+1).toString()
-              newPath = newPath + "." + pathArray[(pathArray.length-1)]
-              var cpu_util_core = ((100 - Number(spl_line[11]))/100).toFixed(2)
+              newPath = newPath + 'core.' + (Number(spl_line[1]) + 1).toString()
+              newPath = newPath + '.' + pathArray[(pathArray.length - 1)]
+              const cpu_util_core = ((100 - Number(spl_line[11])) / 100).toFixed(2)
               app.handleMessage(plugin.id, {
                 updates: [
                   {
-                    values: [ {
+                    values: [{
                       path: newPath,
                       value: Number(cpu_util_core)
                     }]
                   }
                 ]
               })
-            }
-            else {
+            } else {
               debug(`cpu utilisation is ${spl_line[11]}`)
-              cpu_util_all = ((100 - Number(spl_line[11]))/100).toFixed(2)
+              const cpu_util_all = ((100 - Number(spl_line[11])) / 100).toFixed(2)
               app.handleMessage(plugin.id, {
                 updates: [
                   {
-                    values: [ {
+                    values: [{
                       path: options.path_cpu_util,
                       value: Number(cpu_util_all)
                     }]
@@ -243,20 +240,20 @@ module.exports = function(app) {
       })
     }
 
-    function getMemUtil() {
-      var memutil = spawn('sh', ['-c', mem_util_command ])
+    function getMemUtil () {
+      const memUtil = spawn('sh', ['-c', memUtilCommand])
 
-      memutil.stdout.on('data', (data) => {
+      memUtil.stdout.on('data', (data) => {
         debug(`got memory  ${data}`)
-        var mem_util = data.toString().replace(/(\n|\r)+$/, '').split('\n')
-        mem_util.forEach(function(mem_util_line){
-          var splm_line = mem_util_line.replace(/ +/g, ' ').split(' ')
-          if (splm_line[0].toString() === "Mem:"){
-            var mem_util_per = (Number(splm_line[2])/Number(splm_line[1])).toFixed(2)
+        const mem_util = data.toString().replace(/(\n|\r)+$/, '').split('\n')
+        mem_util.forEach(function (mem_util_line) {
+          const splm_line = mem_util_line.replace(/ +/g, ' ').split(' ')
+          if (splm_line[0].toString() === 'Mem:') {
+            const mem_util_per = (Number(splm_line[2]) / Number(splm_line[1])).toFixed(2)
             app.handleMessage(plugin.id, {
               updates: [
                 {
-                  values: [ {
+                  values: [{
                     path: options.path_mem_util,
                     value: Number(mem_util_per)
                   }]
@@ -267,25 +264,25 @@ module.exports = function(app) {
         })
       })
 
-      memutil.on('error', (error) => {
+      memUtil.on('error', (error) => {
         console.error(error.toString())
       })
 
-      memutil.stderr.on('data', function (data) {
+      memUtil.stderr.on('data', function (data) {
         console.error(data.toString())
       })
     }
 
-    function getSdUtil() {
-      var sdutil = spawn('sh', ['-c', sd_util_command ])
+    function getSdUtil () {
+      const sdutil = spawn('sh', ['-c', sdUtilCommand])
 
       sdutil.stdout.on('data', (data) => {
         debug(`got sd  ${data}`)
-        var sd_util = Number(data.toString().replace(/(\n|\r)+$/, ''))/100
+        const sd_util = Number(data.toString().replace(/(\n|\r)+$/, '')) / 100
         app.handleMessage(plugin.id, {
           updates: [
             {
-              values: [ {
+              values: [{
                 path: options.path_sd_util,
                 value: Number(sd_util)
               }]
@@ -304,13 +301,13 @@ module.exports = function(app) {
     }
 
     updateEnv()
-    setInterval(updateEnv, options.rate * 1000)
+    timer = setInterval(updateEnv, options.rate * 1000)
   }
 
-  plugin.stop = function() {
-    if ( timer ) {
+  plugin.stop = function () {
+    if (timer) {
       clearInterval(timer)
-      timer =  null
+      timer = null
     }
   }
 

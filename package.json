@@ -8,17 +8,15 @@
     "signalk-category-utility",
     "signalk-category-hardware"
   ],
- "author": {
+  "author": {
     "name": "Steve Berl",
     "email": "steveberl@gmail.com"
   },
   "bugs": {
     "url": "https://github.com/sberl/signalk-rpi-monitor/issues"
   },
-  "bundleDependencies": [],
   "dependencies": {
-    "debug": "^2.2.0",
-    "lodash": "^4.17.21"
+    "debug": "^2.2.0"
   },
   "deprecated": false,
   "license": "Apache-2.0",
@@ -29,5 +27,12 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.2.0",
+    "eslint-plugin-promise": "^6.0.0"
   }
 }
