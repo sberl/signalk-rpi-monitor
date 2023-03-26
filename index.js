@@ -204,7 +204,7 @@ module.exports = function(app) {
               }
               newPath = newPath + "core." + (Number(spl_line[1])+1).toString()
               newPath = newPath + "." + pathArray[(pathArray.length-1)]
-              var cpu_util_core = ((100 - Number(spl_line[11]))/100).toFixed(2)
+		var cpu_util_core = ((100 - Number(spl_line[11].replace(/,/, '.')))/100).toFixed(2)
               app.handleMessage(plugin.id, {
                 updates: [
                   {
@@ -218,7 +218,7 @@ module.exports = function(app) {
             }
             else {
               debug(`cpu utilisation is ${spl_line[11]}`)
-              cpu_util_all = ((100 - Number(spl_line[11]))/100).toFixed(2)
+		cpu_util_all = ((100 - Number(spl_line[11].replace(/,/, '.')))/100).toFixed(2)
               app.handleMessage(plugin.id, {
                 updates: [
                   {
