@@ -29,7 +29,7 @@ const spawn = require('child_process').spawn
 const gpu_temp_command = 'vcgencmd measure_temp'
 const cpu_temp_command = 'cat /sys/class/thermal/thermal_zone0/temp'
 const cpu_util_mpstat_command = 'S_TIME_FORMAT=\'ISO\' mpstat -P ALL 5 1 | sed -n 4,8p'
-const mem_util_command = 'free'
+const mem_util_command = 'cat /proc/meminfo'
 const sd_util_command = 'df --output=pcent \/\| tail -1 \| awk \'gsub\(\"\%\",\"\"\)\''
 
 module.exports = function(app) {
@@ -248,25 +248,45 @@ module.exports = function(app) {
 
       memutil.stdout.on('data', (data) => {
         debug(`got memory  ${data}`)
-        var mem_util = data.toString().replace(/(\n|\r)+$/, '').split('\n')
-        mem_util.forEach(function(mem_util_line){
-          var splm_line = mem_util_line.replace(/ +/g, ' ').split(' ')
-          if (splm_line[0].toString() === "Mem:"){
-            var mem_util_per = (Number(splm_line[2])/Number(splm_line[1])).toFixed(2)
-            app.handleMessage(plugin.id, {
-              updates: [
+          var mem_util = data.toString().replace(/(\n|\r)+$/, '').split('\n')
+	  var mem_total
+	  var mem_free
+	  var buffers
+	  var cached
+	  var slab
+        mem_util.forEach(function(mem_util_line) {
+            var splm_line = mem_util_line.replace(/ +/g, ' ').split(' ')
+            if (splm_line[0].toString() === "MemTotal:") {
+		mem_total = Number(splm_line[1])
+		debug(`got mem_total = ${mem_total}`)
+	    } else if (splm_line[0].toString() === "MemFree:") {
+		mem_free = Number(splm_line[1])
+		debug(`got mem_free = ${mem_free}`)
+            } else if (splm_line[0].toString() === "Buffers:") {
+                buffers = Number(splm_line[1])
+                debug(`got buffers = ${buffers}`)
+            } else if (splm_line[0].toString() === "Cached:") {
+                cached = Number(splm_line[1])
+                debug(`got cached = ${cached}`)
+            } else if (splm_line[0].toString() === "Slab:") {
+                slab = Number(splm_line[1])
+                debug(`got slab = ${slab}`)
+	    }
+	})
+	  var mem_util_per = ((mem_total - (mem_free + buffers + cached + slab))/mem_total).toFixed(2)
+	debug(`mem_util_per: ${mem_util_per}`)
+	    
+        app.handleMessage(plugin.id, {
+            updates: [
                 {
-                  values: [ {
-                    path: options.path_mem_util,
-                    value: Number(mem_util_per)
-                  }]
-                }
-              ]
-            })
-          }
+                values: [ {
+                  path: options.path_mem_util,
+                  value: Number(mem_util_per)
+                }]
+              }
+            ]
         })
       })
-
       memutil.on('error', (error) => {
         console.error(error.toString())
       })
