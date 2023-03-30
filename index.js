@@ -248,43 +248,43 @@ module.exports = function(app) {
 
       memutil.stdout.on('data', (data) => {
         debug(`got memory  ${data}`)
-          var mem_util = data.toString().replace(/(\n|\r)+$/, '').split('\n')
-	  var mem_total
-	  var mem_free
-	  var buffers
-	  var cached
-	  var slab
+        var mem_util = data.toString().replace(/(\n|\r)+$/, '').split('\n')
+        var mem_total
+        var mem_free
+        var buffers
+        var cached
+        var slab
         mem_util.forEach(function(mem_util_line) {
-            var splm_line = mem_util_line.replace(/ +/g, ' ').split(' ')
-            if (splm_line[0].toString() === "MemTotal:") {
-		mem_total = Number(splm_line[1])
-		debug(`got mem_total = ${mem_total}`)
-	    } else if (splm_line[0].toString() === "MemFree:") {
-		mem_free = Number(splm_line[1])
-		debug(`got mem_free = ${mem_free}`)
-            } else if (splm_line[0].toString() === "Buffers:") {
-                buffers = Number(splm_line[1])
-                debug(`got buffers = ${buffers}`)
-            } else if (splm_line[0].toString() === "Cached:") {
-                cached = Number(splm_line[1])
-                debug(`got cached = ${cached}`)
-            } else if (splm_line[0].toString() === "Slab:") {
-                slab = Number(splm_line[1])
-                debug(`got slab = ${slab}`)
-	    }
+          var splm_line = mem_util_line.replace(/ +/g, ' ').split(' ')
+          if (splm_line[0].toString() === "MemTotal:") {
+            mem_total = Number(splm_line[1])
+            debug(`got mem_total = ${mem_total}`)
+	  } else if (splm_line[0].toString() === "MemFree:") {
+	    mem_free = Number(splm_line[1])
+	    debug(`got mem_free = ${mem_free}`)
+          } else if (splm_line[0].toString() === "Buffers:") {
+            buffers = Number(splm_line[1])
+            debug(`got buffers = ${buffers}`)
+          } else if (splm_line[0].toString() === "Cached:") {
+            cached = Number(splm_line[1])
+            debug(`got cached = ${cached}`)
+          } else if (splm_line[0].toString() === "Slab:") {
+            slab = Number(splm_line[1])
+            debug(`got slab = ${slab}`)
+	  }
 	})
-	  var mem_util_per = ((mem_total - (mem_free + buffers + cached + slab))/mem_total).toFixed(2)
+	var mem_util_per = ((mem_total - (mem_free + buffers + cached + slab))/mem_total).toFixed(2)
 	debug(`mem_util_per: ${mem_util_per}`)
 	    
         app.handleMessage(plugin.id, {
-            updates: [
-                {
-                values: [ {
-                  path: options.path_mem_util,
-                  value: Number(mem_util_per)
-                }]
-              }
-            ]
+          updates: [
+            {
+              values: [ {
+                path: options.path_mem_util,
+                value: Number(mem_util_per)
+              }]
+            }
+          ]
         })
       })
       memutil.on('error', (error) => {
